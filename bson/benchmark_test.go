@@ -561,3 +561,50 @@ func BenchmarkCodeMarshal(b *testing.B) {
 		b.SetBytes(int64(len(codeJSON)))
 	})
 }
+
+// BenchmarkDocumentReader compares decode performance across the three
+// ValueReader construction paths: streaming (NewDocumentReader), buffered
+// (NewBytesDocumentReader), and fully-pooled (Unmarshal).
+func BenchmarkDocumentReader(b *testing.B) {
+	data, err := Marshal(encodetestInstance)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.Run("NewDocumentReader", func(b *testing.B) {
+		b.ReportAllocs()
+		b.SetBytes(int64(len(data)))
+		for i := 0; i < b.N; i++ {
+			vr := NewDocumentReader(bytes.NewReader(data))
+			dec := NewDecoder(vr)
+			var result encodetest
+			if err := dec.Decode(&result); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("NewBytesDocumentReader", func(b *testing.B) {
+		b.ReportAllocs()
+		b.SetBytes(int64(len(data)))
+		for i := 0; i < b.N; i++ {
+			vr := NewBytesDocumentReader(data)
+			dec := NewDecoder(vr)
+			var result encodetest
+			if err := dec.Decode(&result); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("Unmarshal", func(b *testing.B) {
+		b.ReportAllocs()
+		b.SetBytes(int64(len(data)))
+		for i := 0; i < b.N; i++ {
+			var result encodetest
+			if err := Unmarshal(data, &result); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}

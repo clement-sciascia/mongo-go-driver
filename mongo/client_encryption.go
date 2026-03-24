@@ -7,7 +7,6 @@
 package mongo
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -107,8 +106,7 @@ func (ce *ClientEncryption) CreateEncryptedCollection(ctx context.Context,
 	if err != nil {
 		return nil, nil, err
 	}
-	r := bson.NewDocumentReader(bytes.NewReader(efBSON))
-	dec := bson.NewDecoder(r)
+	dec := bson.NewDecoder(bson.NewBytesDocumentReader(efBSON))
 	dec.DefaultDocumentM()
 	var m bson.M
 	err = dec.Decode(&m)

@@ -242,6 +242,24 @@ func TestDecoder(t *testing.T) {
 				})
 			}
 		})
+		t.Run("bytes", func(t *testing.T) {
+			t.Parallel()
+
+			for _, tc := range unmarshalingTestCases() {
+				tc := tc
+
+				t.Run(tc.name, func(t *testing.T) {
+					t.Parallel()
+
+					got := reflect.New(tc.sType).Interface()
+					vr := NewBytesDocumentReader(tc.data)
+					dec := NewDecoder(vr)
+					err := dec.Decode(got)
+					noerr(t, err)
+					assert.Equal(t, tc.want, got, "Results do not match.")
+				})
+			}
+		})
 		t.Run("stream", func(t *testing.T) {
 			t.Parallel()
 

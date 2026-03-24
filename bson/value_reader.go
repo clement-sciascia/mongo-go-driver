@@ -112,6 +112,22 @@ func NewDocumentReader(r io.Reader) ValueReader {
 	}
 }
 
+// NewBytesDocumentReader returns a ValueReader that reads from b directly.
+// It is more efficient than NewDocumentReader(bytes.NewReader(b)) when the
+// BSON data is already available as a byte slice.
+func NewBytesDocumentReader(b []byte) ValueReader {
+	stack := make([]vrState, 1, 5)
+	stack[0] = vrState{
+		mode: mTopLevel,
+		end:  int64(len(b)),
+	}
+
+	return &valueReader{
+		src:   &bufferedByteSrc{buf: b, offset: 0},
+		stack: stack,
+	}
+}
+
 // newBufferedValueReader returns a ValueReader that starts in the Value mode
 // instead of in top level document mode. This enables the creation of a
 // ValueReader for a single BSON value.
